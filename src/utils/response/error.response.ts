@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 
+
  interface IError extends Error {
     statusCode: number;
     } 
@@ -21,6 +22,17 @@ export class AppError extends Error {
 export class BadRequest extends AppError {
     constructor(message: string, cause?: unknown) {
         super(message, 400, cause);
+    }
+}
+
+export class unauthorized extends AppError {
+    constructor(message: string, cause?: unknown) {
+        super(message, 401, cause);
+    }
+}
+export class ForbiddenException extends AppError {
+    constructor(message: string, cause?: unknown) {
+        super(message, 403, cause);
     }
 }
 

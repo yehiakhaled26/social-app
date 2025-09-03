@@ -20,7 +20,7 @@ class DatabaseRepository {
         return await this.model.create(data, options);
     }
     async updateOne({ filter, update, options, }) {
-        return this.model.updateOne(filter, { ...update, $inc: { version: 1 } }, options);
+        return await this.model.updateOne(filter, { ...update, $inc: { version: 1 } }, options);
     }
 }
 exports.DatabaseRepository = DatabaseRepository;

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.confirmEmail = exports.login = exports.signup = void 0;
+exports.ResetForgetPassword = exports.verifyForgetPassword = exports.sendForgetPasswordCode = exports.signupWithGmail = exports.confirmEmail = exports.login = exports.signup = void 0;
+exports.sendForgetPassword = sendForgetPassword;
 const zod_1 = require("zod");
 const validation_middleware_1 = require("../../middleware/validation.middleware");
 exports.signup = {
@@ -48,3 +49,35 @@ exports.confirmEmail = {
         otp: validation_middleware_1.generalFields.otp,
     }),
 };
+exports.signupWithGmail = {
+    body: zod_1.z.strictObject({
+        idToken: zod_1.z.string(),
+        otp: validation_middleware_1.generalFields.otp,
+    }),
+};
+exports.sendForgetPasswordCode = {
+    body: zod_1.z.strictObject({
+        email: validation_middleware_1.generalFields.email,
+    })
+};
+exports.verifyForgetPassword = {
+    body: exports.sendForgetPasswordCode.body.extend({
+        otp: validation_middleware_1.generalFields.otp
+    })
+};
+exports.ResetForgetPassword = {
+    body: exports.sendForgetPasswordCode.body.extend({
+        otp: validation_middleware_1.generalFields.otp,
+        password: validation_middleware_1.generalFields.password,
+        confirmPassword: validation_middleware_1.generalFields.confirmPassword
+    })
+        .refine((data) => {
+        return data.password === data.confirmPassword;
+    }, {
+        message: "password doesn't match",
+        path: ["confirmPassword"]
+    })
+};
+function sendForgetPassword(sendForgetPassword) {
+    throw new Error("Function not implemented.");
+}

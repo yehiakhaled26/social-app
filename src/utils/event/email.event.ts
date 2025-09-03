@@ -18,4 +18,17 @@ emailEvent.on("confirmEmail", async (data: IEmail) => {
   } catch (error) {
     console.log("Fail to send email", error);
   }
-});
+  }); 
+
+  emailEvent.on("resetPassword", async (data: IEmail) => {
+    try {
+      data.subject = "Reset Password";
+      data.html = verifyEmail(data.otp, "Reset Password");
+      await sendEmail(data);
+    } catch (error) {
+      console.log("Fail to send email", error);
+    }
+  });
+
+
+

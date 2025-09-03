@@ -64,10 +64,9 @@ async updateOne({
 }) 
 : Promise<UpdateWriteOpResult >
  {
-  return this.model.updateOne(filter, {...update , $inc:{version:1}}, options);
+  return await this.model.updateOne(filter, 
+    {...update , $inc:{version:1}}, options);
 }
-
-
 
 
 }

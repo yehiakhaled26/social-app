@@ -57,3 +57,45 @@ export const signup = {
   }),
 };
 
+
+    export const signupWithGmail = {
+  body: z.strictObject({
+    idToken: z.string(),
+    otp: generalFields.otp,
+  }),
+};
+
+export const sendForgetPasswordCode = {
+  body : z.strictObject({
+    email: generalFields.email ,  })
+
+  }
+
+  export const verifyForgetPassword ={
+     body:sendForgetPasswordCode.body.extend({
+       otp:generalFields.otp
+     })
+  }
+  
+    export const ResetForgetPassword  ={
+     body:sendForgetPasswordCode.body.extend({
+       otp:generalFields.otp,
+       password:generalFields.password,
+       confirmPassword:generalFields.confirmPassword
+     })
+     .refine((data) => 
+      { return  data.password === data.confirmPassword; 
+
+      } , {
+        message: "password doesn't match",
+        path: ["confirmPassword"]
+      })
+      
+     
+  }
+
+
+export function sendForgetPassword(sendForgetPassword: any): import("express-serve-static-core").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>> {
+    throw new Error("Function not implemented.");
+}
+
