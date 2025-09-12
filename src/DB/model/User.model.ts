@@ -26,6 +26,7 @@ export enum providerEnum {
 export interface IUser {
     _id: Types.ObjectId;
 
+    
     firstName: string;
     lastName: string;
     username?: string;
@@ -40,7 +41,10 @@ export interface IUser {
 
     phone?: string;
     address?: string;
+
+
     profileImage?: string;
+    temProfileImage?: string;
     coverImage?: string[];
 
     gender:genderEnum;
@@ -51,6 +55,10 @@ export interface IUser {
 
     createdAt: Date;
     updatedAt?: Date;
+    freezedAt?: Date;
+    freezedBy?: Types.ObjectId;
+    restoredAt?: Date;
+    restoredBy?: Types.ObjectId;
 }
 
 
@@ -66,6 +74,10 @@ const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true },
     ConfirmEmailOtp: { type: String },
     ConfirmedAt: { type: Date },
+    freezedAt: Date ,
+    freezedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    restoredAt: Date ,
+    restoredBy: { type: Schema.Types.ObjectId, ref: "User" },
 
     password: { type: String, required: function (){
         return this.provider === providerEnum.GOOGLE ? false : true 
@@ -76,8 +88,11 @@ const userSchema = new Schema<IUser>(
     phone: { type: String },
     address: { type: String },
 
-    profileImage: {type: String},
+    profileImage: String,
+    temProfileImage:  String,
     coverImage: [String],
+
+
     gender: {type: String, enum: genderEnum, default: genderEnum.male},
     role: { type: String, enum: RoleEnum, default: RoleEnum.User },
     provider: { type: String, enum: providerEnum, default: providerEnum.SYSTEM},

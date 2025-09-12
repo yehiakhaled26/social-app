@@ -9,8 +9,11 @@ import { UserRepository } from "../../DB/repository/user.repository";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
 import { generateNumberOtp } from "../../utils/security/otp";
 import { emailEvent } from "../../utils/event/email.event";
-import { createLoginCredentials } from "../../utils/security/token.security";
+import { createLoginCredentials ,  } from "../../utils/security/token.security";
 import {OAuth2Client, TokenPayload} from 'google-auth-library';
+import { successResponse } from "../../utils/response/success.response";
+import { ILoginResponse } from "./auth.entities";
+
 
 
 export class AuthenticationService {
@@ -49,7 +52,7 @@ loginWithGmail = async (req:Request , res:Response): Promise<Response> => {
 
 const credentials = await createLoginCredentials(user);
 
-    return res.json({ message: "success" , data:{credentials}});
+    return successResponse<ILoginResponse> ({ res,  data : { credentials }});
   };
 
 
@@ -89,14 +92,10 @@ if (!newUser) {
 
 const credentials = await createLoginCredentials(newUser);
 
-    return res.status(201).json({ message: "success" , data:{credentials}});
+    return successResponse<ILoginResponse> ({ res, statusCode : 201, data: {credentials} });
   };
 
   
-
-
-
-
 
   signup = async (req: Request, res: Response): Promise<Response> => {
     let { username, email, password }: ISignupBodyInputsDTto = req.body;
@@ -112,7 +111,7 @@ const credentials = await createLoginCredentials(newUser);
     // populate: [{path:"username"}]
     },
    });
-   console.log(checkUserExist);
+
 
   if (checkUserExist?._id) {
     throw new confilctException("Email already exist");
@@ -120,7 +119,7 @@ const credentials = await createLoginCredentials(newUser);
 
   const otp = generateNumberOtp();
 
-  const user = await this.userModel.createUser({
+  await this.userModel.createUser({
       data: [{ username, email, password: await generateHash(password) , ConfirmEmailOtp: await generateHash(String(otp)) }],
       options: {},
     });
@@ -129,8 +128,7 @@ const credentials = await createLoginCredentials(newUser);
  
 emailEvent.emit("confirmEmail",{to: email, otp });
 
-return res.status(201).json({ message: "success", data: {user}
-});
+return successResponse <ILoginResponse>({res , statusCode:201 });
 
 
   };
@@ -152,7 +150,7 @@ return res.status(201).json({ message: "success", data: {user}
         throw new BadRequest("invalid otp");
       }
 
-      await this.userModel.updateOne({
+      await this.userModel.UpdateOne({
         filter: { email},
         update: { ConfirmedAt: new Date() ,
                  $unset:{ConfirmEmailOtp:1} 
@@ -162,7 +160,7 @@ return res.status(201).json({ message: "success", data: {user}
 
 
 
-    return res.status(200).json({ message: "success" });
+    return successResponse({res})
   };
 
     login = async (req: Request, res: Response): Promise<Response> => {
@@ -186,13 +184,11 @@ return res.status(201).json({ message: "success", data: {user}
         throw new BadRequest("invalid account");
       }
 
-      const Credentials = await createLoginCredentials(user);
+      const credentials = await createLoginCredentials(user);
    
 
-       return res.status(200).json({ message: "success",data:{Credentials }
-
-
-      });
+      return successResponse ({ res,  data:{credentials}});
+     
     };
 
     sendForgetCode = async (req: Request, res: Response): Promise<Response> => {
@@ -210,7 +206,7 @@ return res.status(201).json({ message: "success", data: {user}
 
 
       const otp = generateNumberOtp();
-      const result =   await this.userModel.updateOne({
+      const result =   await this.userModel.UpdateOne({
         filter: { email },
         update: { resetPasswordOtp: await generateHash(String(otp)) },
       });  
@@ -221,7 +217,7 @@ return res.status(201).json({ message: "success", data: {user}
         
     
        emailEvent.emit("resetPassword", {to: email, otp});
-       return res.status(200).json({ message: "success"})
+       return successResponse({res})
 
 
       };
@@ -247,8 +243,8 @@ return res.status(201).json({ message: "success", data: {user}
       }
     }
 
-       return res.json({ message: "success"})
-      };
+    return successResponse({res})
+  };
 
 
       resetForgetCode = async (req: Request, res: Response): Promise<Response> => {
@@ -270,11 +266,11 @@ return res.status(201).json({ message: "success", data: {user}
       
     }
 
-   const result = await this.userModel.updateOne({
+   const result = await this.userModel.UpdateOne({
         filter: { email },
         update: {
           password: await generateHash(password),
-          changeCerdentialsTime: new Date(),
+          changeCredentialsTime: new Date(),
           $unset: { resetPasswordOtp: 1 },
         },
         },
@@ -286,8 +282,8 @@ return res.status(201).json({ message: "success", data: {user}
     throw new BadRequest("fail to resent password");
 }
       
-       return res.json({ message: "success"})
-      };
+   return successResponse({res})
+};
 
     };
 
