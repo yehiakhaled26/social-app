@@ -3,8 +3,9 @@
 import { Request, Response} from "express";
 import { IFreezeAccountDto, IHardDeleteAccountDto, ILogoutDto, IRestoreAccountDto } from "./user.dto";
 import { createLoginCredentials, createRevokeToken, logoutEnum } from "../../utils/security/token.security";
-import { HUserDocument, IUser, RoleEnum } from "../../DB/model/User.model";
+import {  enableTwoStepVerificationEnum, HUserDocument, IUser, RoleEnum } from "../../DB/model/User.model";
 import { UserRepository } from "../../DB/repository/user.repository";
+// import { DatabaseRepository } from "../../DB/repository/user.repository";
 import { UserModel } from "../../DB/model/User.model";
 import { UpdateQuery } from "mongoose";
 import { JwtPayload } from "jsonwebtoken";
@@ -16,6 +17,9 @@ import { s3Event } from "../../utils/multer/s3.event";
 import { successResponse } from "../../utils/response/success.response";
 import { IProfileImageResponse, IUserResponse } from "./user.entities";
 import { ILoginResponse } from "../auth/auth.entities";
+import { sendEmail } from "../../utils/email/send.email";
+import { compareHash, generateHash } from "../../utils/security/hash.security";
+import { generateNumberOtp } from "../../utils/security/otp";
 
 
 
@@ -24,6 +28,20 @@ class UserService {
     // private tokenModel = new TokenRepository(TokenModel);
 
     constructor() {}
+
+    
+    enableTwoStepVerification = async (req: Request, res: Response): Promise<Response> => {
+  const { method } = req.body;
+  const otp = generateNumberOtp(); 
+  await this.userModel.updateOne({
+    filter: { _id: req.user?._id },
+    update: { twoStepEnabled: true, twoStepMethod: method, twoStepOtp: otp },
+  });
+  if (method === enableTwoStepVerificationEnum.email) {
+    sendEmail({ to: req.user?.email, text: `Your verification code is: ${otp}` });
+  } 
+  return successResponse({ res, message: "2-step verification code sent" });
+};
 
 Profile = async (req: Request, res: Response): Promise<Response> => {
       if (!req.user) {
@@ -38,7 +56,7 @@ freezeAccount = async (req: Request, res: Response): Promise<Response> => {
     throw new ForbiddenException("not authorized user");
   }
 
-  const user = await this.userModel.UpdateOne({
+  const user = await this.userModel.updateOne({
   filter : {
     _id: userId || req.user?._id,
     freezedAt: { $exists: false }, 
@@ -66,7 +84,7 @@ restoreAccount = async (req: Request, res: Response): Promise<Response> => {
     throw new ForbiddenException("not authorized user");
   }
 
-  const user = await this.userModel.UpdateOne({
+  const user = await this.userModel.updateOne({
   filter : {
     _id: userId ,
     freezedBy: { $ne: userId }, 
@@ -94,20 +112,20 @@ hardDeleteAccount = async (req: Request, res: Response): Promise<Response> => {
     throw new ForbiddenException("not authorized user");
   }
 
-  const user = await this.userModel.DeleteOne({
+  const user = await this.userModel.deleteOne({
   filter : {
     _id: userId ,
     freezedAt: { $exists: true }, 
   },
-  update : {
-    restoredAt : new Date(),
-    restoredBy : req.user?._id,
-    changeCredentialsTime : new Date(),
-    $unset:{
-        freezedAt :1 ,
-        freezedBy :1
-    }
-  }
+  // update : {
+  //   restoredAt : new Date(),
+  //   restoredBy : req.user?._id,
+  //   changeCredentialsTime : new Date(),
+  //   $unset:{
+  //       freezedAt :1 ,
+  //       freezedBy :1
+  //   }
+  // }
   });
 
 if (!user.deletedCount){
@@ -198,7 +216,7 @@ switch (flag) {
         break;
 }
 
-    await this.userModel.UpdateOne({
+    await this.userModel.updateOne({
         filter: {_id: req.decoded?._id},
         update,
         
@@ -221,9 +239,61 @@ refreshToken = async (req: Request, res: Response): Promise<Response> => {
 
 };
 
-}
+//  updatePassword = async (req: Request, res: Response): Promise<Response> => {
+//     const { oldPassword, newPassword } = req.body;
+//     // Validate old password, hash new password, update user
+//     const hashedNewPassword = await generateHash(newPassword);
+//     await this.userModel.updateOne({ filter: { _id: req.user?._id }, update: { password: hashedNewPassword } });
+//     return successResponse({ res, message: "Password updated successfully" });
+//   };
+
+
+updatePassword = async (req: Request, res: Response): Promise<Response> => {
+  const { oldPassword, newPassword } = req.body;
+  const user = await this.userModel.findOne({ filter: { _id: req.user?._id } });
+  if (!user) {
+    throw new BadRequest("User not found");
+  }
+
+  const isMatch = await compareHash(oldPassword, user.password);
+  if (!isMatch) {
+    throw new BadRequest("Old password is incorrect");
+  }
+
+  const hashedNewPassword = await generateHash(newPassword);
+  await this.userModel.updateOne({
+    filter: { _id: req.user?._id },
+    update: { password: hashedNewPassword },
+  });
+
+  return successResponse({ res, message: "Password updated successfully" });
+};
+
+  updateBasicInfo = async (req: Request, res: Response): Promise<Response> => {
+    const { firstName, lastName, profileImage } = req.body;
+    await this.userModel.updateOne({
+      filter: { _id: req.user?._id },
+      update: { firstName, lastName, profileImage },
+    });
+    return successResponse({ res, message: "Profile updated successfully" });
+  };
+
+  updateEmail = async (req: Request, res: Response): Promise<Response> => {
+    const { newEmail } = req.body;
+    await this.userModel.updateOne({
+      filter: { _id: req.user?._id },
+      update: { email: newEmail },
+    });
+    return successResponse({ res, message: "Email updated successfully" });
+  };
+
+  sendEmailToTaggedUsers = async (req: Request, res: Response): Promise<Response> => {
+    const { tags, message } = req.body;
+    const users = await this.userModel.find({ filter: { _id: { $in: tags } } });
+users.forEach(user => sendEmail({ to: user.email, text: message }));
+    return successResponse({ res, message: "Emails sent to tagged users" });
+  };
+};
 
     export default new UserService();
-
-
 

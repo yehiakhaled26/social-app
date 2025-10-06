@@ -120,8 +120,11 @@ const credentials = await createLoginCredentials(newUser);
   const otp = generateNumberOtp();
 
   await this.userModel.createUser({
-      data: [{ username, email, password: await generateHash(password) , ConfirmEmailOtp: await generateHash(String(otp)) }],
-      options: {},
+      data: [{ username,
+         email,
+          password: await generateHash(password) ,
+           ConfirmEmailOtp: `${otp}` }],
+      options: {validateBeforeSave:true},
     });
    
 

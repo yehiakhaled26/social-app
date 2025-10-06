@@ -18,6 +18,10 @@
    import { createGetPreSignedLink, getFile } from './utils/multer/s3.config';
    import {promisify} from "node:util";
    import { pipeline } from 'node:stream';
+import { genderEnum, HUserDocument, UserModel } from './DB/model/User.model';
+import { UserRepository } from './DB/repository/user.repository';
+import { Types } from 'mongoose';
+
   //  import { create } from 'node:domain';
    const createS3WriteStreamPipe = promisify(pipeline);
 
@@ -113,6 +117,113 @@
       
 
      await connectBD();
+
+     //hooks
+
+     async function test() {
+      try {
+ 
+        
+      //     const userModel = new UserRepository(UserModel);
+      //       const user = await userModel.findByIdAndUpdate({
+      //   id:"68c97f83c801fb79a2f97cc4" as unknown as Types.ObjectId ,
+      //   update:{
+      //     freezedAt:new Date(),
+      //   } ,
+      // });
+
+      //   const userModel = new UserRepository(UserModel);
+      //       const user = await userModel.find({
+      //   filter: { paranoid: false }  ,
+      //   options:{skip:0 , limit:2} ,
+      // });
+
+        // const user = new UserModel({
+        //   username:"yehia khaled",
+        //   email:`${Date.now()}@gmail.com`,
+        //   password:"123456",
+        // });
+        // await user.save();
+        // user.extra = {name : "ayhaga"};
+    
+        // await user.save();
+// ----------------------------------------------------
+
+        // const userModel = new UserRepository(UserModel);
+      //   const user = ( await userModel.findOne({
+           
+      //      filter:{} ,
+           
+      //     // select:"extra.name"
+      //   }))as HUserDocument;
+      //   console.log(user);
+        
+      //     user.gender = genderEnum.male;
+          
+      //  await user.save();
+        //
+        // ---------------------------------------------------------------- 
+      // const userModel = new UserRepository(UserModel);
+      // const user = await userModel.findOne({filter :{} }) as HUserDocument;
+      // await user.updateOne({lastName:"lolol"})
+
+      //    const userModel = new UserRepository(UserModel);
+      // const user = await userModel.findOne({filter :{} }) as HUserDocument;
+      // await user.deleteOne({})
+// -----------------------------------------------------------------------------
+        
+
+      // const userModel = new UserRepository(UserModel);
+      // const user =( await userModel.findOne({
+      //   filter: {gender:genderEnum.female , paranoid:false} ,
+      // })) as HUserDocument;
+
+      //   const user = ( await userModel.findById({
+      //  id:"68c97f83c801fb79a2f97cc4"as unknown as Types.ObjectId  ,
+      //  options:{lean:true}
+      // })) as HUserDocument;
+
+      // -------------------------------------------------------------------
+
+      //  const userModel = await new UserRepository(UserModel);
+      //   const user = await userModel.updateOne
+      //   ({
+      //     filter:{_id:"68c97f83c801fb79a2f97cc4" }
+      //   ,update:
+      //    { freezedAt:new Date()}
+      //   })
+
+      // -------------------------------------------------------------------
+
+        // const userModel = new UserRepository(UserModel);
+        // const user = await userModel.findOneAndDelete
+        // ({
+        //   filter:{_id:"68cc5183a24db6d75ac26e69" as unknown as Types.ObjectId}
+        // })
+
+        // ----------------------------------------------------------------
+
+        const userModel = new UserRepository(UserModel);
+      const user = await userModel.insertMany({
+        data:[
+        {
+         username:"yehia khaled" ,
+         email:`${Date.now()}@gmail.com` ,
+        password:"123456"
+        },
+      //      {
+      //    username:"yehia khaled" ,
+      //    email:`${Date.now()}323@gmail.com` ,
+      //   password:"123456"
+      //   }
+      ]})
+      console.log( {result :user});
+      } catch (error) {
+        console.log(error); 
+        
+      }}
+    
+        test();
 
      app.listen(port, () => {
      console.log(`Server is running on port:${port}`);

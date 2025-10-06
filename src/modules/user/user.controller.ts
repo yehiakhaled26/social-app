@@ -10,6 +10,7 @@ import { endpoint } from "./user.authorization";
 
 
 
+
 const router = Router();
 
 router.delete("{/:userId}/freeze-account" , authentication() , validation(validators.freezeAccount) , userService.freezeAccount);
@@ -32,6 +33,48 @@ router.patch("/profile-Cover-image", authentication(), cloudFileUpload({
 router.post("/refresh-token",authentication(), userService.refreshToken);
 
 router.post("/logout",authentication() ,validation(validators.logout),userService.logout);
+
+router.patch(
+  "/update-password",
+  authentication(),
+  validation( validators.updatePasswordSchema ), 
+  userService.updatePassword
+);
+
+router.patch(
+  "/update-basic-info",
+  authentication(),
+  validation(validators.updateBasicInfoSchema),
+  userService.updateBasicInfo
+);
+
+router.patch(
+  "/update-email",
+  authentication(),
+  validation(validators.updateEmailSchema),
+  userService.updateEmail
+);
+
+
+router.post(
+  "/send-email-tags",
+  authentication(),
+  userService.sendEmailToTaggedUsers
+);
+
+router.post(
+  "/enable-2step",
+  authentication(),
+  validation(validators.enableTwoStepSchema),
+  userService.enableTwoStepVerification
+);
+
+router.post(
+  "/verify-2step",
+  authentication(),
+  validation(validators.verifyTwoStepSchema),
+  userService.enableTwoStepVerification
+);
 
 
 export default router;

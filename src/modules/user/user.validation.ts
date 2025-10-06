@@ -37,4 +37,35 @@ export const restoreAccount = {
     }),
 };
 
+export const updatePasswordSchema = {
+  body: z.strictObject({
+  oldPassword: z.string().min(6),
+  newPassword: z.string().min(6),
+})};
+
+export const updateBasicInfoSchema ={
+  body: z.strictObject({
+  firstName: z.string().min(2),
+  lastName: z.string().min(2),
+  profileImage: z.string().url().optional(),
+})};
+
+export const updateEmailSchema = {
+body:z.strictObject({
+  newEmail: z.email(),
+})};
+
+export const enableTwoStepSchema ={
+body: z.strictObject({
+  method: z.enum(["email"]),
+})};
+
+export const verifyTwoStepSchema = {
+  body:z.strictObject ({
+    otp: z.string().length(6),
+  
+})
+};
+
+
 export const hardDelete = restoreAccount;

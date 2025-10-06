@@ -4,7 +4,8 @@ import { DatabaseRepository } from "./database.repository";
 import { BadRequest } from "../../utils/response/error.response";
 
 export class UserRepository extends DatabaseRepository<TDocument> {
-  [x: string]: any;
+
+
   constructor(protected override readonly model: Model<TDocument>) {
     super(model);
   }
@@ -28,4 +29,6 @@ export class UserRepository extends DatabaseRepository<TDocument> {
 
   }
 }
+
+export { DatabaseRepository };
 
